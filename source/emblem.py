@@ -88,9 +88,15 @@ def ring(name, radius, thickness, mat, parent):
 
 
 def write_stl(path):
-    """Le monogramme seul, en STL ASCII : c'est lui que GitHub affiche dans sa visionneuse 3D."""
+    """Le monogramme en médaillon, en STL ASCII : c'est lui que GitHub affiche dans sa visionneuse 3D.
+
+    La visionneuse tient l'axe Z pour la verticale et regarde le modèle de haut, depuis le côté des Y négatifs
+    (constaté sur le profil publié). Une lettre debout y est écrasée par la plongée : elle est donc couchée face
+    au ciel sur un socle à six pans, le haut de la lettre vers le fond, et se lit dès l'ouverture.
+    """
+    import mathutils
     obj = monogram(detail=0)
-    # Dans la visionneuse, l'axe Z est vertical : le modèle y est posé debout, tel qu'il se lit.
+    obj.data.extrude = 0.055
     bpy.context.view_layer.update()
     depsgraph = bpy.context.evaluated_depsgraph_get()
     mesh = obj.evaluated_get(depsgraph).to_mesh()
@@ -99,15 +105,15 @@ def write_stl(path):
     bmesh.ops.transform(bm, matrix=obj.matrix_world, verts=bm.verts)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
     bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1.0), verts=bm.verts, edges=bm.edges)
-    # Un socle à six pans sous la lettre : posée dessus, elle se lit comme un objet, et la visionneuse a un sol.
-    import mathutils
-    lowest = min(vert.co.z for vert in bm.verts)
-    centre = sum((vert.co.x for vert in bm.verts)) / len(bm.verts)
-    plinth = bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=6, radius1=0.86, radius2=0.80, depth=0.17,
-                                   matrix=mathutils.Matrix.Translation((centre, 0, lowest - 0.085)))
-    if len(argv) > 2 and argv[2] == 'retourné':
-        # La même pièce vue de l'autre côté, si la visionneuse regarde le modèle par l'arrière.
-        bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=mathutils.Matrix.Rotation(math.pi, 3, 'Z'))
+    # Debout, la lettre regarde vers -Y et monte vers +Z. Un quart de tour autour de X la couche : sa face regarde
+    # vers +Z, son sommet pointe vers +Y.
+    bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=mathutils.Matrix.Rotation(-math.pi / 2, 3, 'X'))
+    xs, ys, zs = ([vert.co[axis] for vert in bm.verts] for axis in range(3))
+    shift = mathutils.Vector((-(min(xs) + max(xs)) / 2, -(min(ys) + max(ys)) / 2, -min(zs)))
+    bmesh.ops.translate(bm, verts=bm.verts, vec=shift)
+    # Le socle : un hexagone aux flancs en biseau, une pointe vers le haut de la lettre.
+    bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=6, radius1=1.18, radius2=1.08, depth=0.17,
+                          matrix=mathutils.Matrix.Translation((0, 0, -0.085)) @ mathutils.Matrix.Rotation(math.pi / 2, 4, 'Z'))
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     lines = ['solid zerrax']
@@ -116,7 +122,7 @@ def write_stl(path):
         lines.append(f'facet normal {n.x:.4f} {n.y:.4f} {n.z:.4f}')
         lines.append('outer loop')
         for vert in face.verts:
-            # Dixièmes de millimètre : le modèle mesure environ 30 unités de haut.
+            # Dixièmes d'unité : le médaillon mesure une vingtaine d'unités de large.
             lines.append(f'vertex {vert.co.x * 10:.3f} {vert.co.y * 10:.3f} {vert.co.z * 10:.3f}')
         lines.append('endloop')
         lines.append('endfacet')
