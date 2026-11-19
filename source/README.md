@@ -11,7 +11,7 @@ Tout ce qui s’affiche sur le profil est fabriqué ici, sans service extérieur
 | `build_cards.py` | Les deux cartes, les outils et le pied de page. |
 | `svglib.py` | Palette, panneau commun, et conversion des textes en tracés. |
 
-Les textes des images sont convertis en tracés : une image SVG ne charge aucune police, et celles du lecteur changeraient les largeurs. Polices utilisées, toutes libres : TeX Gyre Adventor (nom et titres), Lato (textes), DejaVu Sans Mono (lignes de code).
+Les textes des images sont convertis en tracés : une image SVG ne charge aucune police, et celles du lecteur changeraient les largeurs. Polices utilisées, toutes libres : TeX Gyre Adventor (nom et titres), Lato (textes), DejaVu Sans Mono (lignes de code). Leurs auteurs et leurs licences sont dans [FONTS.md](FONTS.md).
 
 Les animations des SVG sont en CSS, sans script, et s’arrêtent pour qui a demandé moins de mouvement à son système.
 
