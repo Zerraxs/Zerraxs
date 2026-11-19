@@ -17,7 +17,15 @@ Les animations des SVG sont en CSS, sans script, et s’arrêtent pour qui a dem
 
 ## Refaire les visuels
 
-Il faut Blender 4, Python 3 avec `fonttools`, `ffmpeg` (avec `libwebp`) et Chromium.
+Il faut Blender 4, Python 3 avec `fonttools`, `ffmpeg` (avec `libwebp`), Node.js et Chromium.
+
+`render-svg.mjs` pilote Chromium avec `playwright-core`, à installer une fois dans ce dossier :
+
+```bash
+npm install playwright-core
+```
+
+Deux variables indiquent où trouver les programmes quand ils ne sont pas à leur place habituelle : `BLENDER` (par défaut `blender`) et `CHROMIUM` (par défaut `/usr/bin/chromium`).
 
 ```bash
 python3 build_typing.py ../assets/typing.svg
